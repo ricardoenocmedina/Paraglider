@@ -8,6 +8,13 @@ import time
 def get_fake_lora_data():
     return random.uniform(20, 80) + random.uniform(-1, 1) * time.time() % 1
 
+def get_data():
+    gps = get_gps_data()
+    accelerometer = get_accelerometer_data()
+    linear_actuator = get_linear_actuator_data()
+    load_cell = get_load_cell_data()
+    return gps, accelerometer, linear_actuator, load_cell
+
 # App and main window
 app = QtWidgets.QApplication(sys.argv)
 main_window = QtWidgets.QMainWindow()
