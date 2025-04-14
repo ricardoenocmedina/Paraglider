@@ -83,11 +83,11 @@ client = ModbusSerialClient(
 zero_offset_um = 0
 
 if client.connect():
-    set_position_control_mode(client)  # ✅ Must come first
+    set_position_control_mode(client)
     client.write_registers(address=688, values=kp_regs)
     client.write_registers(address=690, values=ki_regs)
     client.write_registers(address=692, values=kd_regs)
-    enable_motion(client)  # ✅ Must come after setting mode and PID
+    enable_motion(client) 
 
     try:
         while True:
