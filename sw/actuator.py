@@ -82,6 +82,42 @@ client = ModbusSerialClient(
 
 zero_offset_um = 0
 
+def command_motor_position(client, position_um, zero_offset_um=0):
+    """
+    Commands the motor to move to a specified position.
+
+    Args:
+        client (ModbusSerialClient): The Modbus client instance.
+        position_um (int): The target position in micrometers relative to zero.
+        zero_offset_um (int): The zero offset in micrometers. Defaults to 0.
+
+    Returns:
+        bool: True if the command was sent successfully, False otherwise.
+    """
+    try:
+        # Calculate the absolute target position
+        target_um = zero_offset_um + position_um
+        full_request = build_position_command(target_um)
+
+        print(f"Commanding motor to {position_um} µm from zero (absolute: {target_um} µm).")
+
+        # Send the command and read the response
+        client.socket.write(full_request)
+        response = client.socket.read(19)
+
+        # Parse and display the response
+        if response:
+            parse_motor_response_line(response)
+            return True
+        else:
+            print("No valid response received from motor.")
+            return False
+
+    except Exception as e:
+        print(f"Error while commanding motor position: {e}")
+        return False
+
+'''
 if client.connect():
     set_position_control_mode(client)
     client.write_registers(address=688, values=kp_regs)
@@ -137,3 +173,4 @@ if client.connect():
         client.close()
 else:
     print("Could not connect to motor.")
+'''

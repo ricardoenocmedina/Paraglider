@@ -19,7 +19,6 @@ def configure_module():
     ]
     for cmd in commands:
         ser.write(cmd)
-        time.sleep(0.2)
         print(">", cmd.decode().strip(), ser.readline().decode().strip())
 
 # Send a test message to receiver at address 2
@@ -30,10 +29,8 @@ def send_message():
         command = f"AT+SEND=2,{len(data)},{data}\r\n"
         ser.write(command.encode())
         print("Sent:", data)
-        time.sleep(0.5)
     # print(type(msg))
 
 if __name__ == "__main__":
     configure_module()
-    time.sleep(1)
     send_message()

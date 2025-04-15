@@ -63,7 +63,7 @@ while True:
         data_string = "".join([chr(b) for b in data])
         print(data_string, end="")
 
-    if time.monotonic() - timestamp > 5:
+    if time.monotonic() - timestamp > 1:
         # every 5 seconds...
         gps.send_command(b"PMTK605")  # request firmware version
         timestamp = time.monotonic()
