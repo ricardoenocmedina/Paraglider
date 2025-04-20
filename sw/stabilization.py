@@ -38,3 +38,11 @@ def pid_loop(target, current, kp, ki, kd, dt):
         previous_error = error
 
     return output
+
+def turn_right():
+    # turn the paraglider right by tensioning the right side for 3 seconds
+    pass
+
+def turn_left():
+    # turn the paraglider left by tensioning the left side for 3 seconds
+    pass
