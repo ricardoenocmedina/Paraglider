@@ -44,3 +44,37 @@ except (KeyboardInterrupt, SystemExit):
     
 finally:
     GPIO.cleanup()
+
+
+def init_loadcell(data_pin, clock_pin):
+    """
+    Initialize the load cell.
+    
+    Args:
+        data_pin (int): GPIO pin number for data.
+        clock_pin (int): GPIO pin number for clock.
+        
+    Returns:
+        hx (HX711): Initialized HX711 object.
+    """
+    hx = HX711(dout_pin=data_pin, pd_sck_pin=clock_pin, gain=128, channel='A')
+    hx.reset()
+    return hx
+
+def read_loadcell(hx, num_readings=1):
+    """
+    Read data from the load cell.
+    
+    Args:
+        hx (HX711): HX711 object.
+        num_readings (int): Number of readings to take.
+        
+    Returns:
+        data (list): List of readings.
+    """
+    if hx.read():
+        data = hx._read(num_readings)
+        if data != False:
+            return data
+        else:
+            print('invalid data')
