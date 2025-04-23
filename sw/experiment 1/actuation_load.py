@@ -40,6 +40,10 @@ def setup():
 
   if client1.connect() and client2.connect():
     try:
+        # Set PID gains for both actuators
+        set_pid_gains(client1, unit_id=1, kp=0.5, ki=0.0, kd=0.0)
+        set_pid_gains(client2, unit_id=1, kp=0.5, ki=0.0, kd=0.0)
+        
         configure_motion(client1, unit_id=1, position_um=120000, duration_ms=10000, delay_ms=100)
         configure_motion(client2, unit_id=1, position_um=120000, duration_ms=10000, delay_ms=100)
 
@@ -74,6 +78,22 @@ def configure_motion(client, unit_id, end_position_um, duration_ms, delay_ms):
 
 def trigger_motion(client, motion_id=0):
     client.write_register(address=0x0009, value=motion_id, unit=client)
+
+def set_pid_gains(client, unit_id=1, kp=1.0, ki=0.0, kd=0.0, kp_addr=688, ki_addr=690, kd_addr=692):
+
+    builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
+
+    builder.add_32bit_float(kp)
+    client.write_registers(address=kp_addr, values=builder.to_registers(), unit=unit_id)
+
+    builder.reset()
+    builder.add_32bit_float(ki)
+    client.write_registers(address=ki_addr, values=builder.to_registers(), unit=unit_id)
+
+    builder.reset()
+    builder.add_32bit_float(kd)
+    client.write_registers(address=kd_addr, values=builder.to_registers(), unit=unit_id)
+
 
 if __name__ == "__main__":
     loadcell1, loadcell2, client1, client2 = setup()
