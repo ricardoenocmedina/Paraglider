@@ -38,23 +38,6 @@ def setup():
         timeout=1
     )
 
-  if client1.connect() and client2.connect():
-    try:
-        # Set PID gains for both actuators
-        set_pid_gains(client1, unit_id=1, kp=0.5, ki=0.0, kd=0.0)
-        set_pid_gains(client2, unit_id=1, kp=0.5, ki=0.0, kd=0.0)
-        
-        configure_motion(client1, unit_id=1, position_um=120000, duration_ms=10000, delay_ms=100)
-        configure_motion(client2, unit_id=1, position_um=120000, duration_ms=10000, delay_ms=100)
-
-        # Trigger both actuators
-        trigger_motion(client1, unit_id=1)
-        trigger_motion(client2, unit_id=1)
-    except Exception as e:
-        print(f"Error during actuator operation: {e}")
-  else:
-    print("Failed to connect to actuator.")
-
   return loadcell1, loadcell2, client1, client2
 
 def configure_motion(client, unit_id, end_position_um, duration_ms, delay_ms):
@@ -76,8 +59,8 @@ def configure_motion(client, unit_id, end_position_um, duration_ms, delay_ms):
     # Disable chaining and autostart (0x0311 = 0x0000)
     client.write_register(address=0x0311, value=0x0000, unit=unit_id)
 
-def trigger_motion(client, motion_id=0):
-    client.write_register(address=0x0009, value=motion_id, unit=client)
+def trigger_motion(client, unit_id=1, motion_id=0):
+    client.write_register(address=0x0009, value=motion_id, unit=unit_id)
 
 def set_pid_gains(client, unit_id=1, kp=1.0, ki=0.0, kd=0.0, kp_addr=688, ki_addr=690, kd_addr=692):
 
@@ -97,6 +80,23 @@ def set_pid_gains(client, unit_id=1, kp=1.0, ki=0.0, kd=0.0, kp_addr=688, ki_add
 
 if __name__ == "__main__":
     loadcell1, loadcell2, client1, client2 = setup()
+    if client1.connect() and client2.connect():
+        try:
+            # Set PID gains for both actuators
+            set_pid_gains(client1, unit_id=1, kp=0.5, ki=0.0, kd=0.0)
+            set_pid_gains(client2, unit_id=1, kp=0.5, ki=0.0, kd=0.0)
+
+            configure_motion(client1, unit_id=1, position_um=120000, duration_ms=10000, delay_ms=100)
+            configure_motion(client2, unit_id=1, position_um=120000, duration_ms=10000, delay_ms=100)
+
+            # Trigger both actuators
+            trigger_motion(client1, unit_id=1)
+            trigger_motion(client2, unit_id=1)
+        except Exception as e:
+            print(f"Error during actuator operation: {e}")
+    else:
+        print("Failed to connect to actuator.")
+
     try:
         while True:
             # Read load cell data
