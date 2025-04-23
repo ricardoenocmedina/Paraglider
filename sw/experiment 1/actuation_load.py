@@ -5,7 +5,6 @@ import loadcell
 from pymodbus.client import ModbusSerialClient
 from pymodbus.payload import BinaryPayloadBuilder
 from pymodbus.constants import Endian
-import move_actuator
 
 
 def setup():
@@ -52,25 +51,25 @@ def setup():
   else:
     print("Failed to connect to actuator.")
 
-    return loadcell1, loadcell2, client1, client2
+  return loadcell1, loadcell2, client1, client2
 
-def configure_motion(client, unit_id, position_um, duration_ms, delay_ms):
-    # Target position
+def configure_motion(client, unit_id, end_position_um, duration_ms, delay_ms):
+    # Set end target position to KIN_MOTION_0 (registers 0x030C and 0x030D)
     builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
-    builder.add_32bit_int(position_um)
-    payload = builder.to_registers()
-    client.write_registers(address=0x030C, values=payload, unit=unit_id)
+    builder.add_32bit_int(end_position_um)
+    position_payload = builder.to_registers()
+    client.write_registers(address=0x030C, values=position_payload, unit=unit_id)
 
-    # Duration
+    # Set duration (0x030E and 0x030F)
     builder.reset()
     builder.add_32bit_int(duration_ms)
-    payload = builder.to_registers()
-    client.write_registers(address=0x030E, values=payload, unit=unit_id)
+    duration_payload = builder.to_registers()
+    client.write_registers(address=0x030E, values=duration_payload, unit=unit_id)
 
-    # Delay
-    client.write_register(address=0x0310, value=delay_ms, unit=unit_id)
+    # Set delay to 100 ms (0x0310)
+    client.write_register(address=0x0310, value=100, unit=unit_id)
 
-    # Disable chaining
+    # Disable chaining and autostart (0x0311 = 0x0000)
     client.write_register(address=0x0311, value=0x0000, unit=unit_id)
 
 def trigger_motion(client, motion_id=0):
@@ -88,6 +87,6 @@ if __name__ == "__main__":
             print(f"Load Cell 1: {loadcell1_data}, Load Cell 2: {loadcell2_data}")
 
     except KeyboardInterrupt:
-        print("Experiment interrupted by user.")
+        print("Stop")
     finally:
         GPIO.cleanup()

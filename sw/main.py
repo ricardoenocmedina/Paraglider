@@ -5,6 +5,9 @@ from gps import getGPSData
 from transmitter import send_message
 
 def main():
+    # Initialize sensors and actuators
+    
+
     # Collect data from sensors
     acceleration_data = getAcceleration()
     raw_acceleration_data = getRawAcceleration()
@@ -14,6 +17,7 @@ def main():
         print("GPS Data:", gps_data)
 
     # Control linear actuators
+
 
     # Transmit data through LoRa
 

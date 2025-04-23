@@ -33,6 +33,7 @@ def move_actuator_inches(client, inches):
         parse_motor_response_line(response)
     else:
         print("Incomplete response received.")
+    
 
 def parse_motor_response_line(response):
     if len(response) != 19 or response[1] != 0x64:
