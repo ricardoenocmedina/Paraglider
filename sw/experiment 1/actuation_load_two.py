@@ -9,6 +9,27 @@ from pymodbus.constants import Endian
 BYTE_ORDER = Endian.Little
 WORD_ORDER = Endian.Big
 
+def parse_motor_response_line(response):
+    if response is None or len(response) != 19:
+        print("Invalid response length or no response received.")
+        return None
+
+    if response[1] != 0x64:
+        print(f"Unexpected function code: 0x{response[1]:02X}")
+        return None
+
+    pos = int.from_bytes(response[2:6], byteorder='big', signed=True)
+    force = int.from_bytes(response[6:10], byteorder='big', signed=True)
+    power = int.from_bytes(response[10:12], byteorder='big')
+    temp = response[12]
+    voltage = int.from_bytes(response[13:15], byteorder='big')
+    errors = int.from_bytes(response[15:17], byteorder='big')
+    inches = pos/25400
+
+    print(f"pos: {pos:>7} µm | Inches: {inches} in| force: {force:>6} mN | power: {power:>2} W | temp: {temp}°C | voltage: {voltage} mV | errors: 0x{errors:04X}")
+
+    return pos
+
 def setup():
     # Load cell pins
     data_pin1 = 5
