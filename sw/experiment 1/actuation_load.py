@@ -52,6 +52,8 @@ def setup():
   else:
     print("Failed to connect to actuator.")
 
+    return loadcell1, loadcell2, client1, client2
+
 def configure_motion(client, unit_id, position_um, duration_ms, delay_ms):
     # Target position
     builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Little)
@@ -72,4 +74,20 @@ def configure_motion(client, unit_id, position_um, duration_ms, delay_ms):
     client.write_register(address=0x0311, value=0x0000, unit=unit_id)
 
 def trigger_motion(client, motion_id=0):
-    client.write_register(address=0x0009, value=motion_id, unit=unit_id)
+    client.write_register(address=0x0009, value=motion_id, unit=client)
+
+if __name__ == "__main__":
+    loadcell1, loadcell2, client1, client2 = setup()
+    try:
+        while True:
+            # Read load cell data
+            loadcell1_data = loadcell.read_loadcell(loadcell1)
+            loadcell2_data = loadcell.read_loadcell(loadcell2)
+
+            # Print or log the data
+            print(f"Load Cell 1: {loadcell1_data}, Load Cell 2: {loadcell2_data}")
+
+    except KeyboardInterrupt:
+        print("Experiment interrupted by user.")
+    finally:
+        GPIO.cleanup()
