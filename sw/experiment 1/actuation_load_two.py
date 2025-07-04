@@ -4,6 +4,7 @@ import loadcell
 from pymodbus.client import ModbusSerialClient
 from pymodbus.payload import BinaryPayloadBuilder
 from pymodbus.constants import Endian
+import transmitter
 
 # Set endianness properly
 BYTE_ORDER = Endian.Little
@@ -31,6 +32,10 @@ def parse_motor_response_line(response):
     return pos
 
 def setup():
+    # LoRa setup
+    transmitter.configure_module()
+    transmitter.send_message('Setup complete')
+
     # Load cell pins
     data_pin1 = 5
     clock_pin1 = 6
@@ -97,9 +102,19 @@ def set_pid_gains(client, unit_id=1, kp=0.5, ki=0.0, kd=0.0, kp_addr=688, ki_add
     builder.add_32bit_float(kd)
     client.write_registers(address=kd_addr, values=builder.to_registers(), unit=unit_id)
 
+def actuator_data(client):
+    actuator_data = client.socket.read(19)
+    pos = int.from_bytes(actuator_data[2:6], byteorder='big', signed=True)
+    force = int.from_bytes(actuator_data[6:10], byteorder='big', signed=True)
+    power = int.from_bytes(actuator_data[10:12], byteorder='big', signed=True)
+    temp = actuator_data[12]
+    voltage = int.from_bytes(actuator_data[13:15], byteorder='big', signed=True)
+    errors = actuator_data[15:17]
+    return pos, force, power
+
 if __name__ == "__main__":
     loadcell1, loadcell2, client1, client2 = setup()
-
+    '''
     if client1.connect() and client2.connect():
         try:
             set_pid_gains(client1)
@@ -130,3 +145,17 @@ if __name__ == "__main__":
         print("Interrupted.")
     finally:
         GPIO.cleanup()
+        '''
+    # Send actuator data and load cell data to LoRa receiver
+    pos1, force1, power1 = actuator_data(client1)
+    pos2, force2, power2 = actuator_data(client2)
+
+    loadcell1_data = loadcell.read_loadcell(loadcell1)
+    loadcell2_data = loadcell.read_loadcell(loadcell2)
+
+    message = f'{pos1}, {force1}, {power1}, {loadcell1_data}, {pos2}, {force2}, {power2}, {loadcell2_data}'
+    transmitter.send_message(message)
+    print("Data sent:", message)
+
+def parse_raspi_data(message):
+    # message     message = f'{pos1}, {force1}, {power1}, {loadcell1_data}, {pos2}, {force2}, {power2}, {loadcell2_data}'
